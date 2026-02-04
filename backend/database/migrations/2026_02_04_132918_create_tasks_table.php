@@ -11,10 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tasks', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+       Schema::create('tasks', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('lesson_id')->constrained()->onDelete('cascade');
+    $table->string('type');
+    $table->text('question');
+    $table->json('options')->nullable();
+    $table->string('answer');
+    $table->string('audio_url')->nullable();
+    $table->integer('points')->default(1);
+    $table->timestamps();
+});
     }
 
     /**
