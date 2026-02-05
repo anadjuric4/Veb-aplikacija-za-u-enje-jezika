@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Auth\AuthenticationException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -19,12 +20,31 @@ class Handler extends ExceptionHandler
     ];
 
     /**
-     * Register the exception handling callbacks for the application.
+     * Report or log an exception.
      */
-    public function register(): void
+    public function report(Throwable $e): void
     {
-        $this->reportable(function (Throwable $e) {
-            //
-        });
+        parent::report($e);
+    }
+
+    /**
+     * Render an exception into an HTTP response.
+     */
+    public function render($request, Throwable $e)
+    {
+        return parent::render($request, $e);
+    }
+
+    /**
+     * Handle unauthenticated users (API should return JSON 401 instead of redirect).
+     */
+    protected function unauthenticated($request, AuthenticationException $exception)
+    {
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // If you ever add web login later, you can keep this:
+        return redirect()->guest(route('login'));
     }
 }
