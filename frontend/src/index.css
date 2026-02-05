@@ -24,11 +24,10 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
+
 
 h1 {
   font-size: 3.2em;
@@ -66,3 +65,76 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* --- App layout helpers --- */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.card {
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
+  padding: 16px;
+  background: rgba(255,255,255,0.03);
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #444;
+  margin-bottom: 16px;
+}
+
+.nav-left,
+.nav-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.error {
+  color: #ff6b6b;
+  font-size: 14px;
+}
+
+input {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #555;
+  width: 100%;
+  background: #1a1a1a;
+  color: inherit;
+}
+
+label {
+  font-weight: 600;
+}
+
+.bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #444;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #646cff;
+}
+
