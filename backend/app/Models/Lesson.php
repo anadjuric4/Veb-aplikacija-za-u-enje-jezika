@@ -19,6 +19,13 @@ class Lesson extends Model
     {
         return $this->belongsTo(Course::class);
     }
+
+    // ⬇⬇⬇ DODAJ OVO
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
 }
+
 
 
