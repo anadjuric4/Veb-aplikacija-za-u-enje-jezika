@@ -10,8 +10,10 @@ import Lessons from "./pages/Lessons";
 import Lesson from "./pages/Lesson";
 import Profile from "./pages/Profile";
 import Progress from "./pages/Progress";
+import Admin from "./pages/Admin";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
+import AdminRoute from "./routes/AdminRoute";
 
 export default function App() {
   return (
@@ -19,12 +21,12 @@ export default function App() {
       <Navbar />
 
       <Routes>
-        {/* public */}
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* protected */}
+        {/* Protected routes - zahtevaju autentifikaciju */}
         <Route element={<ProtectedRoute />}>
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/:courseId/lessons" element={<Lessons />} />
@@ -33,8 +35,13 @@ export default function App() {
           <Route path="/progress" element={<Progress />} />
         </Route>
 
-        {/* fallback */}
-        <Route path="*" element={<p>404</p>} />
+        {/* Admin routes - zahtevaju admin ulogu */}
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<Admin />} />
+        </Route>
+
+        {/* Fallback */}
+        <Route path="*" element={<p>404 - Page not found</p>} />
       </Routes>
     </>
   );

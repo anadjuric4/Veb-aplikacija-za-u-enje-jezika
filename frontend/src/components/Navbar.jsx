@@ -21,6 +21,7 @@ export default function Navbar() {
             <Link to="/courses">Courses</Link>
             <Link to="/progress">Progress</Link>
             <Link to="/profile">Profile</Link>
+            <Link to="/admin">Admin</Link> 
           </>
         )}
       </div>
