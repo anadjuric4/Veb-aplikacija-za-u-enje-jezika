@@ -2,17 +2,19 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import InputField from "../components/InputField";
 import Button from "../components/Button";
-import { useAuth } from "../hooks/useAuth"; // DODAJ OVO
+import { useAuthContext } from "../context/AuthContext";
+
 
 const isValidEmail = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 const isStrongPassword = (pw) =>
-  pw.length >= 6; // Pojednostavljena validacija
+  pw.length >= 6; 
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register } = useAuth(); // DODAJ OVO
+  const { register, error } = useAuthContext();
+
 
   const [form, setForm] = useState({
     name: "",
@@ -22,12 +24,10 @@ export default function Register() {
   });
 
   const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState(""); // DODAJ OVO
 
   const onChange = (field) => (e) => {
     setForm((p) => ({ ...p, [field]: e.target.value }));
     setErrors((p) => ({ ...p, [field]: "" }));
-    setApiError(""); // Clear API error
   };
 
   const validate = () => {
@@ -46,19 +46,21 @@ export default function Register() {
     return e;
   };
 
-  const onSubmit = async (e) => { // DODAJ async
+  const onSubmit = async (e) => { 
     e.preventDefault();
     const v = validate();
     setErrors(v);
     if (Object.keys(v).length) return;
 
-    // OVDE JE GLAVNA IZMENA
-    const result = await register(form.name, form.email, form.password);
-    
-    if (result.success) {
+    const ok = await register({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      password_confirmation: form.confirmPassword,
+    });
+
+    if (ok) {
       navigate("/courses");
-    } else {
-      setApiError(result.error);
     }
   };
 
@@ -67,19 +69,22 @@ export default function Register() {
       <h1>Create account</h1>
       <p>Fill in the form to create your account.</p>
 
-      {/* DODAJ ERROR DISPLAY */}
-      {apiError && (
-        <div style={{
-          backgroundColor: '#fee',
-          border: '1px solid #fcc',
-          color: '#c33',
-          padding: 12,
-          borderRadius: 4,
-          marginBottom: 16
-        }}>
-          {apiError}
+      
+      {error && (
+        <div
+          style={{
+            backgroundColor: "#fee",
+            border: "1px solid #fcc",
+            color: "#c33",
+            padding: 12,
+            borderRadius: 4,
+            marginBottom: 16,
+          }}
+        >
+          {error}
         </div>
       )}
+
 
       <div className="card">
         <form onSubmit={onSubmit}>

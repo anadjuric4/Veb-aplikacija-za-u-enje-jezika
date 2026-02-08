@@ -7,7 +7,7 @@ import Button from "../components/Button";
 export default function Lessons() {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  
+
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,14 +20,15 @@ export default function Lessons() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+      setError("");
+
       // Fetch course info
       const courseResponse = await coursesAPI.getById(courseId);
-      setCourse(courseResponse.data);
-      
+      setCourse(courseResponse.data?.data ?? courseResponse.data);
+
       // Fetch lessons
       const lessonsResponse = await lessonsAPI.getByCourse(courseId);
-      setLessons(lessonsResponse.data);
+      setLessons(lessonsResponse.data?.data ?? lessonsResponse.data);
     } catch (err) {
       console.error("Failed to load lessons:", err);
       setError("Failed to load lessons. Please try again.");
@@ -48,9 +49,9 @@ export default function Lessons() {
     return (
       <div className="container">
         <h1>Error</h1>
-        <p style={{ color: 'red' }}>{error}</p>
+        <p style={{ color: "red" }}>{error}</p>
         <Button onClick={fetchData}>Try Again</Button>
-        <Button onClick={() => navigate('/courses')} style={{ marginLeft: 8 }}>
+        <Button onClick={() => navigate("/courses")} style={{ marginLeft: 8 }}>
           Back to Courses
         </Button>
       </div>
@@ -59,11 +60,11 @@ export default function Lessons() {
 
   return (
     <div className="container">
-      <Button onClick={() => navigate('/courses')} style={{ marginBottom: 16 }}>
+      <Button onClick={() => navigate("/courses")} style={{ marginBottom: 16 }}>
         ← Back to Courses
       </Button>
 
-      <h1>{course?.title || 'Course Lessons'}</h1>
+      <h1>{course?.title || "Course Lessons"}</h1>
       <p>{course?.description}</p>
 
       {lessons.length === 0 ? (

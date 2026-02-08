@@ -27,8 +27,15 @@ export default function Lesson() {
   const fetchTasks = async () => {
     try {
       setLoading(true);
+      setError("");
+      setCurrentTaskIndex(0);
+      setAnswer("");
+      setShowModal(false);
+      setIsCorrect(false);
+      setScore(0);
+
       const response = await tasksAPI.getByLesson(lessonId);
-      setTasks(response.data);
+      setTasks(response.data?.data ?? response.data);
     } catch (err) {
       console.error("Failed to load tasks:", err);
       setError("Failed to load tasks. Please try again.");
@@ -76,7 +83,7 @@ export default function Lesson() {
     setShowModal(true);
 
     if (correct) {
-      setScore(score + 1);
+      setScore((s) => s + 1);
     }
   };
 

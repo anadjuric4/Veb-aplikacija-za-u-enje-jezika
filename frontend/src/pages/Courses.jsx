@@ -10,14 +10,17 @@ export default function Courses() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchCourses();
+    (async () => {
+      await fetchCourses();
+    })();
   }, []);
+
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
       const response = await coursesAPI.getAll();
-      setCourses(response.data);
+      setCourses(response.data?.data ?? response.data);
     } catch (err) {
       console.error("Failed to load courses:", err);
       setError("Failed to load courses. Please try again.");
