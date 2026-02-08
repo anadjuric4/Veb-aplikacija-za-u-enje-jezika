@@ -1,92 +1,132 @@
-import { useState } from "react";
-import { useFetch } from "../hooks/useFetch";
+import { useState, useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { coursesAPI, lessonsAPI, tasksAPI } from "../services/api";
 import Button from "../components/Button";
 import InputField from "../components/InputField";
 import Card from "../components/Card";
 import Modal from "../components/Modal";
 
 export default function Admin() {
-  const [activeTab, setActiveTab] = useState("lessons"); // lessons, users, audio
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("courses");
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Mock podaci
-  const mockLessons = [
-    { id: 1, title: "Greetings", courseId: 1, order: 1, tasks: 5 },
-    { id: 2, title: "Numbers", courseId: 1, order: 2, tasks: 8 },
-    { id: 3, title: "Food & Drinks", courseId: 2, order: 1, tasks: 10 },
-  ];
+  // Data states
+  const [courses, setCourses] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
-  const mockUsers = [
-    { id: 1, username: "john_doe", email: "john@example.com", role: "user", status: "active" },
-    { id: 2, username: "jane_smith", email: "jane@example.com", role: "user", status: "active" },
-    { id: 3, username: "admin_user", email: "admin@example.com", role: "admin", status: "active" },
-  ];
+  useEffect(() => {
+    if (activeTab === "courses") fetchCourses();
+    if (activeTab === "lessons") fetchLessons();
+    if (activeTab === "tasks") fetchTasks();
+  }, [activeTab]);
 
-  const [lessons, setLessons] = useState(mockLessons);
-  const [users, setUsers] = useState(mockUsers);
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const response = await coursesAPI.getAll();
+      setCourses(response.data);
+    } catch (err) {
+      console.error("Failed to load courses:", err);
+      alert("Failed to load courses");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Funkcije za lekcije
-  const handleCreateLesson = () => {
+  const fetchLessons = async () => {
+    try {
+      setLoading(true);
+      // Za admin panel, učitaj sve lekcije (moraš dodati endpoint u backend)
+      // Privremeno koristimo samo courses
+      const response = await coursesAPI.getAll();
+      setCourses(response.data);
+    } catch (err) {
+      console.error("Failed to load lessons:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTasks = async () => {
+    setLoading(false);
+  };
+
+  // Course handlers
+  const handleCreateCourse = () => {
     setEditingItem(null);
     setShowModal(true);
   };
 
-  const handleEditLesson = (lesson) => {
-    setEditingItem(lesson);
-    setShowModal(true);
-  };
-
-  const handleDeleteLesson = (id) => {
-    if (window.confirm("Are you sure you want to delete this lesson?")) {
-      setLessons(lessons.filter(l => l.id !== id));
-      alert("Lesson deleted successfully!");
+  const handleSaveCourse = async (courseData) => {
+    try {
+      if (editingItem) {
+        // Update - need to add update endpoint in backend
+        alert("Update not implemented yet");
+      } else {
+        // Create
+        await coursesAPI.create(courseData);
+        alert("Course created successfully!");
+        fetchCourses();
+      }
+      setShowModal(false);
+    } catch (err) {
+      console.error("Failed to save course:", err);
+      alert("Failed to save course");
     }
   };
 
-  const handleSaveLesson = (lessonData) => {
-    if (editingItem) {
-      // Update
-      setLessons(lessons.map(l => l.id === editingItem.id ? { ...l, ...lessonData } : l));
-      alert("Lesson updated successfully!");
-    } else {
-      // Create
-      const newLesson = { ...lessonData, id: Math.max(...lessons.map(l => l.id)) + 1 };
-      setLessons([...lessons, newLesson]);
-      alert("Lesson created successfully!");
+  const handleDeleteCourse = async (id) => {
+    if (window.confirm("Are you sure you want to delete this course?")) {
+      try {
+        // Need to add delete endpoint in backend
+        alert("Delete not implemented yet in backend");
+      } catch (err) {
+        console.error("Failed to delete course:", err);
+        alert("Failed to delete course");
+      }
     }
-    setShowModal(false);
   };
 
-  // Funkcije za korisnike
-  const handleBlockUser = (userId) => {
-    setUsers(users.map(u => 
-      u.id === userId 
-        ? { ...u, status: u.status === "active" ? "blocked" : "active" }
-        : u
-    ));
-  };
+  // Check if user is admin
+  if (!user?.is_admin) {
+    return (
+      <div className="container">
+        <h1>Access Denied</h1>
+        <p>You don't have permission to access this page.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
       <h1>Admin Panel</h1>
-      <p>Manage lessons, users, and content.</p>
+      <p>Manage courses, lessons, and tasks.</p>
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: 8, marginTop: 20, marginBottom: 20 }}>
-        <Button 
+        <Button
+          onClick={() => setActiveTab("courses")}
+          style={{ background: activeTab === "courses" ? "#111" : "#666" }}
+        >
+          Courses
+        </Button>
+        <Button
           onClick={() => setActiveTab("lessons")}
           style={{ background: activeTab === "lessons" ? "#111" : "#666" }}
         >
           Lessons
         </Button>
-        <Button 
-          onClick={() => setActiveTab("users")}
-          style={{ background: activeTab === "users" ? "#111" : "#666" }}
+        <Button
+          onClick={() => setActiveTab("tasks")}
+          style={{ background: activeTab === "tasks" ? "#111" : "#666" }}
         >
-          Users
+          Tasks
         </Button>
-        <Button 
+        <Button
           onClick={() => setActiveTab("stats")}
           style={{ background: activeTab === "stats" ? "#111" : "#666" }}
         >
@@ -94,95 +134,92 @@ export default function Admin() {
         </Button>
       </div>
 
-      {/* Lessons Tab */}
-      {activeTab === "lessons" && (
+      {/* Courses Tab */}
+      {activeTab === "courses" && (
         <div>
           <div style={{ marginBottom: 16 }}>
-            <Button onClick={handleCreateLesson}>+ Create New Lesson</Button>
+            <Button onClick={handleCreateCourse}>+ Create New Course</Button>
           </div>
 
-          <div style={{ display: "grid", gap: 12 }}>
-            {lessons.map((lesson) => (
-              <Card
-                key={lesson.id}
-                title={lesson.title}
-                subtitle={`Course ID: ${lesson.courseId} | Order: ${lesson.order} | Tasks: ${lesson.tasks}`}
-                footer={
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Button onClick={() => handleEditLesson(lesson)}>Edit</Button>
-                    <Button 
-                      onClick={() => handleDeleteLesson(lesson.id)}
-                      style={{ background: "#d32f2f" }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                }
-              />
-            ))}
-          </div>
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
+            <div style={{ display: "grid", gap: 12 }}>
+              {courses.map((course) => (
+                <Card
+                  key={course.id}
+                  title={course.title}
+                  subtitle={course.description}
+                  footer={
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <Button onClick={() => {
+                        setEditingItem(course);
+                        setShowModal(true);
+                      }}>
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteCourse(course.id)}
+                        style={{ background: "#d32f2f" }}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  }
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Users Tab */}
-      {activeTab === "users" && (
+      {/* Lessons Tab */}
+      {activeTab === "lessons" && (
         <div>
-          <div style={{ display: "grid", gap: 12 }}>
-            {users.map((user) => (
-              <Card
-                key={user.id}
-                title={user.username}
-                subtitle={`${user.email} | Role: ${user.role}`}
-                footer={
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <span style={{ 
-                      color: user.status === "active" ? "green" : "red",
-                      fontWeight: "bold"
-                    }}>
-                      {user.status.toUpperCase()}
-                    </span>
-                    <Button 
-                      onClick={() => handleBlockUser(user.id)}
-                      style={{ background: user.status === "active" ? "#d32f2f" : "#4CAF50" }}
-                    >
-                      {user.status === "active" ? "Block" : "Unblock"}
-                    </Button>
-                  </div>
-                }
-              />
-            ))}
-          </div>
+          <p>Lessons management - coming soon</p>
+        </div>
+      )}
+
+      {/* Tasks Tab */}
+      {activeTab === "tasks" && (
+        <div>
+          <p>Tasks management - coming soon</p>
         </div>
       )}
 
       {/* Statistics Tab */}
       {activeTab === "stats" && (
         <div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-            <Card title="Total Users" subtitle="125 active users" />
-            <Card title="Total Lessons" subtitle={`${lessons.length} lessons`} />
-            <Card title="Completion Rate" subtitle="78% average" />
-            <Card title="Most Popular Course" subtitle="English for Beginners" />
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
+            gap: 16 
+          }}>
+            <Card title="Total Courses" subtitle={courses.length} />
+            <Card title="Total Users" subtitle="Coming soon" />
+            <Card title="Completion Rate" subtitle="Coming soon" />
+            <Card title="Active Learners" subtitle="Coming soon" />
           </div>
         </div>
       )}
 
-      {/* Modal za kreiranje/izmenu lekcije */}
-      {showModal && <LessonModal 
-        lesson={editingItem}
-        onSave={handleSaveLesson}
-        onClose={() => setShowModal(false)}
-      />}
+      {/* Modal za kreiranje/izmenu kursa */}
+      {showModal && (
+        <CourseModal
+          course={editingItem}
+          onSave={handleSaveCourse}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }
 
-// Modal komponenta za lekcije
-function LessonModal({ lesson, onSave, onClose }) {
+// Modal komponenta za kurseve
+function CourseModal({ course, onSave, onClose }) {
   const [form, setForm] = useState({
-    title: lesson?.title || "",
-    courseId: lesson?.courseId || "",
-    order: lesson?.order || "",
+    title: course?.title || "",
+    description: course?.description || "",
   });
 
   const handleSubmit = (e) => {
@@ -194,34 +231,29 @@ function LessonModal({ lesson, onSave, onClose }) {
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={lesson ? "Edit Lesson" : "Create New Lesson"}
+      title={course ? "Edit Course" : "Create New Course"}
       footer={
         <div style={{ display: "flex", gap: 8 }}>
           <Button onClick={handleSubmit}>Save</Button>
-          <Button onClick={onClose} style={{ background: "#666" }}>Cancel</Button>
+          <Button onClick={onClose} style={{ background: "#666" }}>
+            Cancel
+          </Button>
         </div>
       }
     >
       <form onSubmit={handleSubmit}>
         <InputField
-          label="Lesson Title"
+          label="Course Title"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
-          placeholder="e.g., Greetings"
+          placeholder="e.g., English for Beginners"
+          required
         />
         <InputField
-          label="Course ID"
-          type="number"
-          value={form.courseId}
-          onChange={(e) => setForm({ ...form, courseId: e.target.value })}
-          placeholder="1"
-        />
-        <InputField
-          label="Order"
-          type="number"
-          value={form.order}
-          onChange={(e) => setForm({ ...form, order: e.target.value })}
-          placeholder="1"
+          label="Description"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          placeholder="Course description"
         />
       </form>
     </Modal>

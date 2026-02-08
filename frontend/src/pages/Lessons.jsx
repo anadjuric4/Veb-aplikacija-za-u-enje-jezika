@@ -1,31 +1,89 @@
-import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { lessonsAPI, coursesAPI } from "../services/api";
+import Card from "../components/Card";
+import Button from "../components/Button";
 
 export default function Lessons() {
   const { courseId } = useParams();
+  const navigate = useNavigate();
+  
+  const [course, setCourse] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const lessons = [
-    { id: "l1", title: "Basics" },
-    { id: "l2", title: "Greetings" },
-    { id: "l3", title: "Everyday phrases" },
-  ];
+  useEffect(() => {
+    fetchData();
+  }, [courseId]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch course info
+      const courseResponse = await coursesAPI.getById(courseId);
+      setCourse(courseResponse.data);
+      
+      // Fetch lessons
+      const lessonsResponse = await lessonsAPI.getByCourse(courseId);
+      setLessons(lessonsResponse.data);
+    } catch (err) {
+      console.error("Failed to load lessons:", err);
+      setError("Failed to load lessons. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container">
+        <h1>Loading lessons...</h1>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container">
+        <h1>Error</h1>
+        <p style={{ color: 'red' }}>{error}</p>
+        <Button onClick={fetchData}>Try Again</Button>
+        <Button onClick={() => navigate('/courses')} style={{ marginLeft: 8 }}>
+          Back to Courses
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
-      <h1>Lessons</h1>
-      <p>Choose a lesson to begin.</p>
+      <Button onClick={() => navigate('/courses')} style={{ marginBottom: 16 }}>
+        ← Back to Courses
+      </Button>
 
-      <div className="grid">
-        {lessons.map((l) => (
-          <div className="card" key={l.id}>
-            <h3>{l.title}</h3>
-            <Link to={`/lesson/${l.id}`}>Start lesson</Link>
-          </div>
-        ))}
-      </div>
+      <h1>{course?.title || 'Course Lessons'}</h1>
+      <p>{course?.description}</p>
 
-      <p style={{ marginTop: 12 }}>
-        <Link to="/courses">Back to courses</Link>
-      </p>
+      {lessons.length === 0 ? (
+        <p>No lessons available yet for this course.</p>
+      ) : (
+        <div style={{ display: "grid", gap: 16, marginTop: 20 }}>
+          {lessons.map((lesson, index) => (
+            <Card
+              key={lesson.id}
+              title={`${index + 1}. ${lesson.title}`}
+              subtitle={lesson.content}
+              footer={
+                <Link to={`/lesson/${lesson.id}`}>
+                  <Button>Start Lesson</Button>
+                </Link>
+              }
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

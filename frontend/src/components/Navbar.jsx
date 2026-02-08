@@ -1,41 +1,70 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import Button from "./Button";
 
 export default function Navbar() {
-  const { isAuthed, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  const { isAuthed, user, logout } = useAuth();
 
   return (
-    <div className="nav">
-      <div className="nav-left">
-        <Link to="/">Home</Link>
+    <nav style={{
+      background: "#111",
+      color: "#fff",
+      padding: "16px 24px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }}>
+      <Link to="/" style={{ color: "#fff", textDecoration: "none", fontSize: 20, fontWeight: "bold" }}>
+        Language Learning
+      </Link>
 
-        {isAuthed && (
-          <>
-            <Link to="/courses">Courses</Link>
-            <Link to="/progress">Progress</Link>
-            <Link to="/profile">Profile</Link>
-            <Link to="/admin">Admin</Link> 
-          </>
-        )}
-      </div>
+      <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+        <Link to="/" style={{ color: "#fff", textDecoration: "none" }}>
+          Home
+        </Link>
 
-      <div className="nav-right">
-        {!isAuthed ? (
+        {isAuthed ? (
           <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/courses" style={{ color: "#fff", textDecoration: "none" }}>
+              Courses
+            </Link>
+            <Link to="/progress" style={{ color: "#fff", textDecoration: "none" }}>
+              Progress
+            </Link>
+            <Link to="/profile" style={{ color: "#fff", textDecoration: "none" }}>
+              Profile
+            </Link>
+            
+            {user?.is_admin && (
+              <Link to="/admin" style={{ color: "#ffd700", textDecoration: "none" }}>
+                Admin
+              </Link>
+            )}
+
+            <button
+              onClick={logout}
+              style={{
+                background: "#d32f2f",
+                color: "#fff",
+                border: "none",
+                padding: "8px 16px",
+                borderRadius: 4,
+                cursor: "pointer"
+              }}
+            >
+              Logout
+            </button>
           </>
         ) : (
-          <Button onClick={handleLogout}>Logout</Button>
+          <>
+            <Link to="/login" style={{ color: "#fff", textDecoration: "none" }}>
+              Login
+            </Link>
+            <Link to="/register" style={{ color: "#fff", textDecoration: "none" }}>
+              Register
+            </Link>
+          </>
         )}
       </div>
-    </div>
+    </nav>
   );
 }

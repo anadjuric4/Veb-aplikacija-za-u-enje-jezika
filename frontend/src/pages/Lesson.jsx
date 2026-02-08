@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { tasksAPI } from "../services/api";
 import Button from "../components/Button";
 import Modal from "../components/Modal";
 import AudioPlayer from "../components/AudioPlayer";
@@ -9,60 +10,71 @@ export default function Lesson() {
   const { lessonId } = useParams();
   const navigate = useNavigate();
 
-  // Mock zadaci za lekciju
-  const tasks = [
-  {
-    id: 1,
-    type: "translate",
-    question: "Translate the following word to English:",
-    word: "Zdravo",
-    correctAnswer: "Hello",
-    explanation: "Zdravo is a common Serbian greeting that translates to Hello in English."
-  },
-  {
-    id: 2,
-    type: "audio",
-    question: "Listen to the audio and choose the correct word:",
-    audioUrl: "/audio/hello.mp3", // ← Prvi audio
-    options: ["Hello", "Goodbye", "Thank you", "Please"],
-    correctAnswer: "Hello",
-    explanation: "The audio says 'Hello' - a basic English greeting."
-  },
-  {
-    id: 3,
-    type: "multiple-choice",
-    question: "What does 'Good morning' mean in Serbian?",
-    options: ["Dobro veče", "Dobro jutro", "Laku noć", "Dobar dan"],
-    correctAnswer: "Dobro jutro",
-    explanation: "Dobro jutro is the Serbian translation of Good morning."
-  },
-  {
-    id: 4,
-    type: "audio",
-    question: "Listen carefully and identify the word:",
-    audioUrl: "/audio/goodbye.mp3", // ← Drugi audio
-    options: ["Hello", "Goodbye", "Thank you", "Please"],
-    correctAnswer: "Goodbye",
-    explanation: "The audio says 'Goodbye' - used when parting ways."
-  }
-];
-
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
 
+  useEffect(() => {
+    fetchTasks();
+  }, [lessonId]);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const response = await tasksAPI.getByLesson(lessonId);
+      setTasks(response.data);
+    } catch (err) {
+      console.error("Failed to load tasks:", err);
+      setError("Failed to load tasks. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container">
+        <h1>Loading lesson...</h1>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container">
+        <h1>Error</h1>
+        <p style={{ color: 'red' }}>{error}</p>
+        <Button onClick={fetchTasks}>Try Again</Button>
+      </div>
+    );
+  }
+
+  if (tasks.length === 0) {
+    return (
+      <div className="container">
+        <h1>No Tasks Available</h1>
+        <p>This lesson doesn't have any tasks yet.</p>
+        <Button onClick={() => navigate(-1)}>Go Back</Button>
+      </div>
+    );
+  }
+
   const currentTask = tasks[currentTaskIndex];
   const progress = ((currentTaskIndex + 1) / tasks.length) * 100;
 
   const checkAnswer = () => {
     const userAnswer = answer.trim().toLowerCase();
-    const correct = userAnswer === currentTask.correctAnswer.toLowerCase();
-    
+    const correct = userAnswer === currentTask.correct_answer.toLowerCase();
+
     setIsCorrect(correct);
     setShowModal(true);
-    
+
     if (correct) {
       setScore(score + 1);
     }
@@ -86,7 +98,7 @@ export default function Lesson() {
       case "translate":
         return (
           <div>
-            <p><strong>{currentTask.word}</strong></p>
+            <p><strong>{currentTask.question}</strong></p>
             <input
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
@@ -105,12 +117,14 @@ export default function Lesson() {
       case "audio":
         return (
           <div>
-            <AudioPlayer 
-              src={currentTask.audioUrl} 
-              label="Listen to the pronunciation" 
-            />
+            {currentTask.audio_url && (
+              <AudioPlayer
+                src={currentTask.audio_url}
+                label="Listen to the pronunciation"
+              />
+            )}
             <div style={{ marginTop: 16 }}>
-              {currentTask.options.map((option, idx) => (
+              {currentTask.options?.map((option, idx) => (
                 <div key={idx} style={{ marginBottom: 8 }}>
                   <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
                     <input
@@ -132,7 +146,7 @@ export default function Lesson() {
       case "multiple-choice":
         return (
           <div>
-            {currentTask.options.map((option, idx) => (
+            {currentTask.options?.map((option, idx) => (
               <div key={idx} style={{ marginBottom: 8 }}>
                 <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
                   <input
@@ -151,17 +165,17 @@ export default function Lesson() {
         );
 
       default:
-        return null;
+        return <p>Unknown task type</p>;
     }
   };
 
   return (
     <div className="container">
       <h1>Lesson {lessonId}</h1>
-      
-      <ProgressBar 
-        progress={progress} 
-        showLabel 
+
+      <ProgressBar
+        progress={progress}
+        showLabel
         label={`Task ${currentTaskIndex + 1} of ${tasks.length}`}
         height={12}
       />
@@ -192,14 +206,16 @@ export default function Lesson() {
       >
         <div>
           <p>
-            {isCorrect 
-              ? "Great job! Your answer is correct." 
-              : `The correct answer is: ${currentTask.correctAnswer}`
+            {isCorrect
+              ? "Great job! Your answer is correct."
+              : `The correct answer is: ${currentTask.correct_answer}`
             }
           </p>
-          <p style={{ marginTop: 12, fontSize: 14, color: "#666" }}>
-            <strong>Explanation:</strong> {currentTask.explanation}
-          </p>
+          {currentTask.explanation && (
+            <p style={{ marginTop: 12, fontSize: 14, color: "#666" }}>
+              <strong>Explanation:</strong> {currentTask.explanation}
+            </p>
+          )}
         </div>
       </Modal>
     </div>

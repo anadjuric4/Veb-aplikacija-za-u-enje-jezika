@@ -23,6 +23,8 @@ Route::get('/courses/{id}', [CourseController::class, 'show']);
 // courses (admin only)
 Route::middleware('admin')->group(function () {
     Route::post('/courses', [CourseController::class, 'store']);
+    Route::put('/courses/{id}', [CourseController::class, 'update']);      
+    Route::delete('/courses/{id}', [CourseController::class, 'destroy']); 
 });
 
    // lessons (auth users)

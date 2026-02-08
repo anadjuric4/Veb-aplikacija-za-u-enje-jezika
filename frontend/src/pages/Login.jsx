@@ -16,10 +16,12 @@ export default function Login() {
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState(""); // DODAJ OVO
 
   const onChange = (field) => (e) => {
     setForm((p) => ({ ...p, [field]: e.target.value }));
     setErrors((p) => ({ ...p, [field]: "" }));
+    setApiError(""); // Clear API error
   };
 
   const validate = () => {
@@ -31,20 +33,40 @@ export default function Login() {
     return e;
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => { // DODAJ async
     e.preventDefault();
     const v = validate();
     setErrors(v);
     if (Object.keys(v).length) return;
 
-    login();
-    navigate(from, { replace: true });
+    // OVDE JE GLAVNA IZMENA
+    const result = await login(form.email, form.password);
+    
+    if (result.success) {
+      navigate(from, { replace: true });
+    } else {
+      setApiError(result.error);
+    }
   };
 
   return (
     <div className="container">
       <h1>Login</h1>
       <p>Please enter your email and password to continue.</p>
+
+      {/* DODAJ ERROR DISPLAY */}
+      {apiError && (
+        <div style={{
+          backgroundColor: '#fee',
+          border: '1px solid #fcc',
+          color: '#c33',
+          padding: 12,
+          borderRadius: 4,
+          marginBottom: 16
+        }}>
+          {apiError}
+        </div>
+      )}
 
       <div className="card">
         <form onSubmit={onSubmit}>
@@ -70,7 +92,7 @@ export default function Login() {
       </div>
 
       <p style={{ marginTop: 12 }}>
-        Don’t have an account? <Link to="/register">Create one</Link>
+        Don't have an account? <Link to="/register">Create one</Link>
       </p>
     </div>
   );
