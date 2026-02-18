@@ -121,57 +121,90 @@ class DatabaseSeeder extends Seeder
 
         echo "✅ Created 5 lessons\n";
 
-        // ========== TASKS ==========
-        DB::table('tasks')->insert([
-            // Greetings lesson
-            [
-                'lesson_id' => $greetingsId,
-                'question' => 'Translate the word: Zdravo',
-                'type' => 'translate',
-                'options' => null,
-                'correct_answer' => 'Hello',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            [
-                'lesson_id' => $greetingsId,
-                'question' => 'What does "Good morning" mean in Serbian?',
-                'type' => 'multiple_choice',
-                'options' => json_encode(['Dobro veče', 'Dobro jutro', 'Laku noć', 'Dobar dan']),
-                'correct_answer' => 'Dobro jutro',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            // Numbers lesson
-            [
-                'lesson_id' => $numbersId,
-                'question' => 'How do you say "five" in English?',
-                'type' => 'multiple_choice',
-                'options' => json_encode(['Four', 'Five', 'Six', 'Seven']),
-                'correct_answer' => 'Five',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            [
-                'lesson_id' => $numbersId,
-                'question' => 'Translate: deset',
-                'type' => 'translate',
-                'options' => null,
-                'correct_answer' => 'Ten',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            // Food lesson
-            [
-                'lesson_id' => $foodId,
-                'question' => 'What is "bread" in Serbian?',
-                'type' => 'multiple_choice',
-                'options' => json_encode(['Voda', 'Hleb', 'Mleko', 'Sir']),
-                'correct_answer' => 'Hleb',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]
-        ]);
+        // ================= TASKS =================
+DB::table('tasks')->insert([
+
+    // ================= GREETINGS =================
+    [
+        'lesson_id' => $greetingsId,
+        'question' => 'Translate: Zdravo',
+        'type' => 'translate',
+        'options' => null,
+        'correct_answer' => 'Hello',
+        'audio_url' => null,
+        'created_at' => now(),
+        'updated_at' => now()
+    ],
+    [
+        'lesson_id' => $greetingsId,
+        'question' => 'Choose the correct translation for "Good night"',
+        'type' => 'multiple-choice',
+        'options' => json_encode(['Laku noć', 'Dobro jutro', 'Dobar dan', 'Zdravo']),
+        'correct_answer' => 'Laku noć',
+        'audio_url' => null,
+        'created_at' => now(),
+        'updated_at' => now()
+    ],
+
+    // ================= NUMBERS =================
+    [
+        'lesson_id' => $numbersId,
+        'question' => 'Translate: deset',
+        'type' => 'translate',
+        'options' => null,
+        'correct_answer' => 'Ten',
+        'audio_url' => null,
+        'created_at' => now(),
+        'updated_at' => now()
+    ],
+    [
+        'lesson_id' => $numbersId,
+        'question' => 'How do you say number 5?',
+        'type' => 'multiple-choice',
+        'options' => json_encode(['Four', 'Five', 'Six', 'Seven']),
+        'correct_answer' => 'Five',
+        'audio_url' => null,
+        'created_at' => now(),
+        'updated_at' => now()
+    ],
+
+    // ================= FOOD =================
+    [
+        'lesson_id' => $foodId,
+        'question' => 'What is "bread" in Serbian?',
+        'type' => 'multiple-choice',
+        'options' => json_encode(['Voda', 'Hleb', 'Mleko', 'Sir']),
+        'correct_answer' => 'Hleb',
+        'audio_url' => null,
+        'created_at' => now(),
+        'updated_at' => now()
+    ],
+    [
+        'lesson_id' => $foodId,
+        'question' => 'Translate: mleko',
+        'type' => 'translate',
+        'options' => null,
+        'correct_answer' => 'Milk',
+        'audio_url' => null,
+        'created_at' => now(),
+        'updated_at' => now()
+    ],
+
+    // ================= AUDIO TASK =================
+    [
+        'lesson_id' => $greetingsId,
+        'question' => 'Listen and choose the correct word',
+        'type' => 'audio',
+        'options' => json_encode(['Hello', 'Goodbye', 'Please', 'Thanks']),
+        'correct_answer' => 'Hello',
+        'audio_url' => 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+        'created_at' => now(),
+        'updated_at' => now()
+    ],
+
+]);
+
+    
 
         echo "✅ Created 5 tasks\n";
 
