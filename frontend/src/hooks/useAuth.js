@@ -1,80 +1,89 @@
-import { useEffect, useState } from "react";
-import { csrf, loginApi, logoutApi, meApi, registerApi } from "../api/auth";
+import { useState } from "react";
+import { authAPI } from "../services/api";
 
 export function useAuth() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // bitno za refresh
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [user, setUser] = useState(
+    localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null
+  );
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchMe = async () => {
-    try {
-      const res = await meApi();
-      setUser(res.data?.user ?? res.data); // zavisi kako si vratio JSON
-      return res.data;
-    } catch (e) {
-      setUser(null);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      await fetchMe();
-      setLoading(false);
-    })();
-  }, []);
+  const isAuthed = !!token;
 
   const login = async ({ email, password }) => {
-    setError(null);
-    setLoading(true);
     try {
-      await csrf();
-      await loginApi({ email, password });
-      await fetchMe();
+      setError(null);
+      setLoading(true);
+      
+      const response = await authAPI.login(email, password);
+      const { token: authToken, user: authUser } = response.data;
+
+      localStorage.setItem("token", authToken);
+      localStorage.setItem("user", JSON.stringify(authUser));
+      setToken(authToken);
+      setUser(authUser);
+
+      return true; // ← Vraća true za success
+    } catch (err) {
+      console.error("Login error:", err);
+      
+      // Postavi error poruku
+      const message = err.response?.data?.message || 
+                     (err.response?.status === 422 ? "Neispravni podaci." : "Login nije uspeo.");
+      setError(message);
+      
+      return false; // ← Vraća false za failure
+    } finally {
       setLoading(false);
-      return true;
-    } catch (e) {
-      const msg =
-        e?.response?.data?.message ||
-        (e?.response?.status === 422 ? "Neispravni podaci." : "Login nije uspeo.");
-      setError(msg);
-      setLoading(false);
-      return false;
     }
   };
 
   const register = async ({ name, email, password, password_confirmation }) => {
-    setError(null);
-    setLoading(true);
     try {
-      await csrf();
-      await registerApi({ name, email, password, password_confirmation });
-      await fetchMe();
-      setLoading(false);
+      setError(null);
+      setLoading(true);
+      
+      const response = await authAPI.register(name, email, password, password_confirmation);
+      const { token: authToken, user: authUser } = response.data;
+
+      localStorage.setItem("token", authToken);
+      localStorage.setItem("user", JSON.stringify(authUser));
+      setToken(authToken);
+      setUser(authUser);
+
       return true;
-    } catch (e) {
-      const msg =
-        e?.response?.data?.message ||
-        (e?.response?.status === 422 ? "Proveri polja (validacija)." : "Registracija nije uspela.");
-      setError(msg);
-      setLoading(false);
+    } catch (err) {
+      console.error("Register error:", err);
+      const message = err.response?.data?.message || 
+                     (err.response?.status === 422 ? "Proveri polja." : "Registracija nije uspela.");
+      setError(message);
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
-    setError(null);
-    setLoading(true);
     try {
-      await logoutApi();
-    } catch (e) {
-      // i ako failuje, očisti user
+      await authAPI.logout();
+    } catch (err) {
+      console.error("Logout error:", err);
     } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setToken(null);
       setUser(null);
-      setLoading(false);
     }
   };
 
-  return { user, loading, error, login, register, logout };
+  return { 
+    user, 
+    isAuthed, 
+    loading, 
+    error, 
+    login, 
+    register, 
+    logout 
+  };
 }
